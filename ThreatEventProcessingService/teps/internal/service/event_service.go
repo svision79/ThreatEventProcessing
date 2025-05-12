@@ -2,6 +2,7 @@ package service
 
 import (
 	"ThreatEventProcessingService/teps/internal/models"
+	"ThreatEventProcessingService/teps/internal/utils/external"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -19,6 +20,7 @@ type EventService interface {
 	UpdateById(id int, event *models.Event) error
 	GetOlderEvents(duration time.Duration) (*[]models.Event, error)
 	DeleteEvents(oldEvent []models.Event) error
+	FetchEventsAndSave() func()
 }
 
 type eventService struct {
@@ -130,4 +132,21 @@ func (service *eventService) GetOlderEvents(duration time.Duration) (*[]models.E
 	threshold := time.Now().Add(-duration)
 	err := service.db.Where("detected_at < ?", threshold).Find(&events).Error
 	return &events, err
+}
+
+func (service *eventService) FetchEventsAndSave() func() {
+	return func() {
+		events, err := external.FetchEvents()
+		if err != nil {
+			log.Println("Failed to fetch:", err)
+			return
+		}
+
+		for _, e := range events {
+			err := service.Create(&e)
+			if err != nil {
+				log.Println("Failed to create event:", err)
+			}
+		}
+	}
 }

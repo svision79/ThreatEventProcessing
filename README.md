@@ -13,18 +13,24 @@ These services work together to generate, retrieve, store, cache, and manage cyb
 ```
 go.work
 event-file-reader/           # Generates random event data and serves it via an API
-    ├── data/events.json     # Auto-generated file with random events
+    ├── data/events.json     # Startup Generated Data file
+    ├── internal/
+    │   ├── handlers/        # HTTP handlers
+    │   ├── models/          # Data models
+    │   └── server/          # Server Setup
+    │   └── utils/           # Utility Methods
     └── main.go              # Starts the file reader service
 
 ThreatEventProcessingService/
     ├── teps/main.go     # Main entry point for TEPS
-    ├── internal/
-    │   ├── async/           # Scheduler implementations
+    ├── teps/internal/
     │   ├── handlers/        # HTTP handlers
-    │   ├── model/           # Data models
+    │   ├── models/          # Data models
     │   ├── repository/      # DB & cache access
     │   ├── schedulers/      # Scheduler setup
-    │   └── service/         # Business logic
+    │   └── server/          # Server Setup
+    │   ├── service/         # Business logic
+    │   └── utils/           # Utility Methods
     ├── .env                 # Configuration file
     └── go.mod
 
@@ -141,7 +147,7 @@ CREATE TABLE events (
 );
 ```
 
-3. Start both services:
+3. Start both services in same order:
 
 # Terminal 1
 ```
@@ -154,6 +160,7 @@ go run main.go
 cd ThreatEventProcessingService
 go run teps/main.go
 ```
+Added startup load to postgres call: It will fetch events on startup and save to db
 
 go.work
 This project uses a go.work file to link both modules, allowing cross-package imports and shared model references.
@@ -163,4 +170,4 @@ Make sure you're at the root level when running commands so the go.work file can
 **Generated File**
 **event-file-reader/data/events.json**: This file is overwritten on every startup with new random events.
 
-**Note:**__ Upload S3 part is commented for now, bucket names and key can be modifed in .env file
+**Note:**__ Upload S3 part is commented for now, bucket names and key can be modified in .env file. Change postgres username and password accordingly.

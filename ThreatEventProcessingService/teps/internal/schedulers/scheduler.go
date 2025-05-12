@@ -2,7 +2,6 @@ package schedulers
 
 import (
 	"ThreatEventProcessingService/teps/internal/service"
-	"ThreatEventProcessingService/teps/internal/utils/external"
 	"github.com/robfig/cron/v3"
 	"log"
 	"os"
@@ -37,20 +36,7 @@ func (scheduler *Scheduler) StartSchedulers() (error, error) {
 
 func (scheduler *Scheduler) fetchEventsScheduler() error {
 	spec := os.Getenv("FETCH_API_TIME")
-	_, err := c.AddFunc(spec, func() {
-		events, err := external.FetchEvents()
-		if err != nil {
-			log.Println("Failed to fetch:", err)
-			return
-		}
-
-		for _, e := range events {
-			err := scheduler.service.Create(&e)
-			if err != nil {
-				return
-			}
-		}
-	})
+	_, err := c.AddFunc(spec, scheduler.service.FetchEventsAndSave())
 	if err != nil {
 		log.Println("Failed to schedule FetchEvents job:", err)
 	} else {

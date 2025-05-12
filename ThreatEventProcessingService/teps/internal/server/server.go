@@ -24,6 +24,8 @@ func Run() error {
 	db := repository.NewDB()
 	cache := repository.NewCache()
 	eventService := service.NewEventService(db, cache)
+	log.Println("Loading data from event reader and saving")
+	eventService.FetchEventsAndSave()()
 	eventHandler := handlers.NewEventHandler(eventService)
 	eventScheduler := schedulers.InitSchedulers(eventService)
 	err1, err2 := eventScheduler.StartSchedulers()
